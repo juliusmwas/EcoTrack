@@ -17,6 +17,7 @@ if (isset($_SESSION['user'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoTrack | Smart Waste Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
         :root {
             --primary: #1B7F79;
@@ -25,6 +26,7 @@ if (isset($_SESSION['user'])) {
             --dark-text: #1A1A1A;
             --light-text: #ffffff;
             --shadow: rgba(0, 0, 0, 0.1);
+            scroll-behavior: smooth;
         }
 
         * {
@@ -52,7 +54,7 @@ if (isset($_SESSION['user'])) {
             align-items: center;
             padding: 1rem 5%;
             box-shadow: 0 2px 5px var(--shadow);
-            z-index: 10;
+            z-index: 30;
         }
 
         nav .logo {
@@ -76,6 +78,58 @@ if (isset($_SESSION['user'])) {
 
         nav ul li a:hover {
             color: var(--accent);
+        }
+
+        /* Mobile Menu */
+        .menu-icon {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            z-index: 35;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 25;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width:768px) {
+            nav ul {
+                position: fixed;
+                top: 0;
+                right: -250px;
+                height: 100vh;
+                width: 220px;
+                background: var(--primary);
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 5rem 2rem;
+                gap: 1.2rem;
+                box-shadow: -2px 0 10px var(--shadow);
+                transition: right 0.4s ease-in-out;
+                z-index: 40;
+            }
+
+            nav ul.show {
+                right: 0;
+            }
+
+            .menu-icon {
+                display: block;
+            }
         }
 
         /* Hero Section */
@@ -106,6 +160,8 @@ if (isset($_SESSION['user'])) {
             margin-top: 2rem;
             display: flex;
             gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .hero a {
@@ -260,13 +316,13 @@ if (isset($_SESSION['user'])) {
             }
         }
     </style>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
     <nav>
         <div class="logo">EcoTrack</div>
-        <ul>
+        <div class="menu-icon" id="menu-icon"><i class="ri-menu-line"></i></div>
+        <ul id="menu-list">
             <li><a href="#home">Home</a></li>
             <li><a href="#about">About</a></li>
             <li><a href="#features">Features</a></li>
@@ -274,6 +330,8 @@ if (isset($_SESSION['user'])) {
             <li><a href="register.php">Register</a></li>
         </ul>
     </nav>
+
+    <div class="overlay" id="overlay"></div>
 
     <section class="hero" id="home">
         <h1>Smart, Connected & Clean Cities</h1>
@@ -293,22 +351,22 @@ if (isset($_SESSION['user'])) {
         <h2>Key Features</h2>
         <div class="feature-grid">
             <div class="feature-card">
-                <i class="fas fa-map-marker-alt"></i>
+                <i class="ri-map-pin-2-line"></i>
                 <h3>Real-Time Reporting</h3>
                 <p>Residents can instantly report the status of waste bins with geolocation data, ensuring rapid response and clean neighborhoods.</p>
             </div>
             <div class="feature-card">
-                <i class="fas fa-chart-line"></i>
+                <i class="ri-bar-chart-line"></i>
                 <h3>Interactive Dashboard</h3>
                 <p>Municipal officers access an intelligent dashboard to monitor bin locations, track reports, and analyze collection patterns.</p>
             </div>
             <div class="feature-card">
-                <i class="fas fa-users"></i>
+                <i class="ri-team-line"></i>
                 <h3>Community Engagement</h3>
                 <p>EcoTrack bridges communities and authorities, fostering shared responsibility and collaboration for a cleaner city.</p>
             </div>
             <div class="feature-card">
-                <i class="fas fa-recycle"></i>
+                <i class="ri-recycle-line"></i>
                 <h3>Sustainability Insights</h3>
                 <p>Track trends, optimize routes, and contribute to environmental sustainability using data-driven insights.</p>
             </div>
@@ -325,6 +383,38 @@ if (isset($_SESSION['user'])) {
         <p>&copy; <?php echo date('Y'); ?> EcoTrack. All Rights Reserved.<br>
             Designed & Developed by Julius Mwangi Kiai | <a href="mailto:support@ecotrack.com">Contact</a></p>
     </footer>
+
+    <script>
+        const menuIcon = document.getElementById('menu-icon');
+        const menuList = document.getElementById('menu-list');
+        const overlay = document.getElementById('overlay');
+
+        menuIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuList.classList.toggle('show');
+            overlay.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!menuList.contains(e.target) && !menuIcon.contains(e.target)) {
+                menuList.classList.remove('show');
+                overlay.classList.remove('active');
+            }
+        });
+
+        overlay.addEventListener('click', () => {
+            menuList.classList.remove('show');
+            overlay.classList.remove('active');
+        });
+
+        const links = menuList.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                menuList.classList.remove('show');
+                overlay.classList.remove('active');
+            });
+        });
+    </script>
 </body>
 
 </html>
