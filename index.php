@@ -1,13 +1,8 @@
 <?php
 // index.php - EcoTrack (Smart Waste Management System)
 session_start();
-if (isset($_SESSION['user'])) {
-    $role = $_SESSION['user']['role'];
-    if ($role == 'admin') header('Location: dashboard/admin.php');
-    elseif ($role == 'collector') header('Location: dashboard/collector.php');
-    else header('Location: dashboard/resident.php');
-    exit;
-}
+$user = $_SESSION['user'] ?? null;
+
 ?>
 
 <!DOCTYPE html>
@@ -326,9 +321,16 @@ if (isset($_SESSION['user'])) {
             <li><a href="#home">Home</a></li>
             <li><a href="#about">About</a></li>
             <li><a href="#features">Features</a></li>
-            <li><a href="login.php">Login</a></li>
-            <li><a href="register.php">Register</a></li>
+
+            <?php if ($user): ?>
+                <li><a href="dashboard/<?php echo $user['role']; ?>.php">Dashboard</a></li>
+                <li><a href="logout.php">Logout</a></li>
+            <?php else: ?>
+                <li><a href="login.php">Login</a></li>
+                <li><a href="register.php">Register</a></li>
+            <?php endif; ?>
         </ul>
+
     </nav>
 
     <div class="overlay" id="overlay"></div>

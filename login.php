@@ -154,7 +154,9 @@ session_start();
         </form>
         <div class="extra-links">
             <p>Don't have an account? <a href="register.php">Register</a></p>
+            <p><a href="index.php">← Back to Homepage</a></p>
         </div>
+
     </div>
 
     <footer>

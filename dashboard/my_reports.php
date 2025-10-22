@@ -22,6 +22,24 @@ require_once '../config.php';
             --shadow: rgba(0, 0, 0, 0.1);
         }
 
+        /* --- Main Layout Adjustment --- */
+        .main-content {
+            margin-left: 230px;
+            /* same width as your sidebar */
+            padding: 2rem;
+            background: var(--light-bg);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Adjust for mobile view */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
         .reports-container {
             background: #fff;
             border-radius: 12px;
