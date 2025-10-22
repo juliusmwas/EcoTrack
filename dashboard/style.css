@@ -1,0 +1,93 @@
+/* EcoTrack Dashboard Styles */
+:root {
+  --primary: #1B7F79;
+  --accent: #42B883;
+  --light-bg: #F5F8F7;
+  --dark-text: #1A1A1A;
+  --light-text: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.1);
+  scroll-behavior: smooth;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  display: flex;
+  height: 100vh;
+  background: var(--light-bg);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: var(--primary);
+  color: var(--light-text);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  transition: 0.3s;
+}
+
+.sidebar h2 {
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.sidebar a {
+  color: var(--light-text);
+  text-decoration: none;
+  padding: 0.8rem 1rem;
+  margin: 0.3rem 0;
+  border-radius: 8px;
+  display: block;
+  transition: background 0.3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background: var(--accent);
+}
+
+/* Navbar */
+.navbar {
+  height: 60px;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 2px 5px var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+
+.navbar h1 {
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+.navbar button {
+  background: var(--accent);
+  color: var(--light-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.navbar button:hover {
+  background: #37a471;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
