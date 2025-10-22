@@ -212,5 +212,11 @@ require_once '../config.php';
         filter.addEventListener('change', filterReports);
     </script>
 </body>
+<?php if (isset($_GET['success'])): ?>
+    <div style="background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:15px;">
+        ✅ Report submitted successfully!
+    </div>
+<?php endif; ?>
+
 
 </html>

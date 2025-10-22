@@ -150,7 +150,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
             color: #fff;
             font-weight: 600;
             text-transform: capitalize;
-            font-size: 0.9rem;
+            font-size: 0.5rem;
         }
 
         .empty {
@@ -254,72 +254,57 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Demo bins
-        const bins = [{
-                name: "Main Market Bin",
-                lat: -0.329,
-                lng: 37.646,
-                status: "full"
-            },
-            {
-                name: "Chuka University Bin",
-                lat: -0.333,
-                lng: 37.652,
-                status: "half-full"
-            },
-            {
-                name: "Town Hall Bin",
-                lat: -0.328,
-                lng: 37.641,
-                status: "overflowing"
-            },
-            {
-                name: "Bus Station Bin",
-                lat: -0.334,
-                lng: 37.648,
-                status: "empty"
-            },
-            {
-                name: "Kairini Area Bin",
-                lat: -0.337,
-                lng: 37.643,
-                status: "full"
-            }
-        ];
+        // Fetch bin data from database
+        fetch('get_bins.php')
+            .then(response => response.json())
+            .then(bins => {
+                const colors = {
+                    "empty": "green",
+                    "half-full": "blue",
+                    "full": "orange",
+                    "overflowing": "red"
+                };
 
-        const colors = {
-            "empty": "green",
-            "half-full": "blue",
-            "full": "orange",
-            "overflowing": "red"
-        };
+                bins.forEach((bin) => {
+                    const marker = L.circleMarker([bin.lat, bin.lng], {
+                        color: colors[bin.status],
+                        radius: 9,
+                        fillOpacity: 0.9
+                    }).addTo(map);
 
-        bins.forEach((bin) => {
-            const marker = L.circleMarker([bin.lat, bin.lng], {
-                color: colors[bin.status],
-                radius: 9,
-                fillOpacity: 0.9
-            }).addTo(map);
+                    const popup = `
+                <strong>${bin.name}</strong><br>
+                <span class="status-pill ${bin.status}">${bin.status}</span><br>
+                <label>Change Status:</label>
+                <select id="status-${bin.id}">
+                <option value="empty">Empty</option>
+                <option value="half-full">Half Full</option>
+                <option value="full">Full</option>
+                <option value="overflowing">Overflowing</option>
+                </select>
+                <button onclick="updateBin(${bin.id})">Save</button>
+            `;
+                    marker.bindPopup(popup);
+                });
+            })
+            .catch(err => console.error('Error loading bins:', err));
 
-            const popup = `
-        <strong>${bin.name}</strong><br>
-        <span class="status-pill ${bin.status}">${bin.status}</span><br>
-        <label>Change Status:</label>
-        <select id="status-${bin.name}">
-          <option value="empty">Empty</option>
-          <option value="half-full">Half Full</option>
-          <option value="full">Full</option>
-          <option value="overflowing">Overflowing</option>
-        </select>
-        <button onclick="updateBin('${bin.name}')">Save</button>
-      `;
-            marker.bindPopup(popup);
-        });
 
-        function updateBin(name) {
-            const status = document.getElementById(`status-${name}`).value;
-            alert(`✅ ${name} status updated to ${status}`);
+        function updateBin(id) {
+            const status = document.getElementById(`status-${id}`).value;
+            fetch('update_bin.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `id=${id}&status=${status}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) alert(`✅ Bin #${id} updated to ${status}`);
+                });
         }
+
 
         // Click to fill coordinates
         map.on('click', e => {
