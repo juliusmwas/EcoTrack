@@ -5,6 +5,16 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'collector') {
     exit;
 }
 require_once '../config.php';
+
+// Handle status update form
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['status'])) {
+    $report_id = $_POST['report_id'];
+    $status = $_POST['status'];
+    $stmt = $pdo->prepare("UPDATE waste_reports SET status = ? WHERE id = ?");
+    $stmt->execute([$status, $report_id]);
+    header("Location: assigned_reports.php?updated=1");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,7 +22,7 @@ require_once '../config.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collector Dashboard | EcoTrack</title>
+    <title>My Assigned Reports | EcoTrack</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
@@ -47,64 +57,11 @@ require_once '../config.php';
             margin-bottom: 1rem;
         }
 
-        p {
-            color: #444;
-            margin-bottom: 2rem;
-        }
-
-        /* --- Dashboard Cards --- */
-        .dashboard-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
+        .reports-container {
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 3px 10px var(--shadow);
+            box-shadow: 0 4px 10px var(--shadow);
             padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-        }
-
-        .card i {
-            font-size: 2rem;
-            color: var(--accent);
-            background: #e8f7f3;
-            padding: 0.8rem;
-            border-radius: 50%;
-        }
-
-        .card-content h3 {
-            font-size: 1.4rem;
-            color: var(--primary);
-            margin-bottom: 0.2rem;
-        }
-
-        .card-content span {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        /* --- Recent Reports Table --- */
-        .reports-section {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px var(--shadow);
-            padding: 1.5rem;
-        }
-
-        .reports-section h3 {
-            color: var(--primary);
-            margin-bottom: 1rem;
         }
 
         .table-wrapper {
@@ -113,14 +70,12 @@ require_once '../config.php';
             border-radius: 10px;
             box-shadow: 0 3px 10px var(--shadow);
             -webkit-overflow-scrolling: touch;
-            /* smooth scroll on mobile */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             min-width: 600px;
-            /* ensures scroll activates on narrow screens */
             background: #fff;
         }
 
@@ -129,7 +84,6 @@ require_once '../config.php';
             padding: 0.9rem;
             text-align: center;
             white-space: nowrap;
-            /* prevents cell wrapping on mobile */
         }
 
         thead {
@@ -144,7 +98,6 @@ require_once '../config.php';
         tbody tr:hover {
             background: #f0f7f5;
         }
-
 
         .status-pill {
             padding: 0.4rem 0.8rem;
@@ -167,25 +120,45 @@ require_once '../config.php';
             background: #5cb85c;
         }
 
-        @media (max-width:600px) {
-            h2 {
-                font-size: 1.4rem;
-            }
+        select {
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 0.85rem;
+        }
 
-            .dashboard-cards {
-                grid-template-columns: 1fr;
-            }
+        button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
 
+        button:hover {
+            background: #37a471;
+        }
 
-            .card-content h3 {
-                font-size: 1.2rem;
-            }
+        @media (max-width: 600px) {
 
             th,
             td {
                 font-size: 0.85rem;
+                padding: 0.7rem;
             }
 
+            select,
+            button {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .reports-container {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
@@ -196,52 +169,15 @@ require_once '../config.php';
         <?php include 'navbar.php'; ?>
 
         <div class="main-content">
-            <h2>Collector Dashboard</h2>
-            <p>Welcome back! Here’s an overview of your assigned waste collection reports.</p>
+            <h2><i class="ri-list-check-2"></i> My Assigned Reports</h2>
 
-            <!-- Summary Cards -->
-            <div class="dashboard-cards">
-                <?php
-                // Fetch stats from DB
-                $collector_id = $_SESSION['user']['id'];
-                $total = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE assigned_to=?");
-                $total->execute([$collector_id]);
-                $total_reports = $total->fetchColumn();
-
-                $in_progress = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE assigned_to=? AND status='in progress'");
-                $in_progress->execute([$collector_id]);
-                $in_progress_count = $in_progress->fetchColumn();
-
-                $resolved = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE assigned_to=? AND status='resolved'");
-                $resolved->execute([$collector_id]);
-                $resolved_count = $resolved->fetchColumn();
-                ?>
-                <div class="card">
-                    <i class="ri-file-list-3-line"></i>
-                    <div class="card-content">
-                        <h3><?php echo $total_reports; ?></h3>
-                        <span>Total Reports</span>
-                    </div>
+            <?php if (isset($_GET['updated'])): ?>
+                <div style="background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:15px;">
+                    ✅ Report status updated successfully.
                 </div>
-                <div class="card">
-                    <i class="ri-loader-2-line"></i>
-                    <div class="card-content">
-                        <h3><?php echo $in_progress_count; ?></h3>
-                        <span>In Progress</span>
-                    </div>
-                </div>
-                <div class="card">
-                    <i class="ri-checkbox-circle-line"></i>
-                    <div class="card-content">
-                        <h3><?php echo $resolved_count; ?></h3>
-                        <span>Resolved</span>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
 
-            <!-- Recent Assigned Reports -->
-            <div class="reports-section">
-                <h3><i class="ri-time-line"></i> Recent Assigned Reports</h3>
+            <div class="reports-container">
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -250,11 +186,13 @@ require_once '../config.php';
                                 <th>Location</th>
                                 <th>Status</th>
                                 <th>Reported On</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            $stmt = $pdo->prepare("SELECT * FROM waste_reports WHERE assigned_to=? ORDER BY created_at DESC LIMIT 8");
+                            $collector_id = $_SESSION['user']['id'];
+                            $stmt = $pdo->prepare("SELECT * FROM waste_reports WHERE assigned_to=? ORDER BY created_at DESC");
                             $stmt->execute([$collector_id]);
                             $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -266,10 +204,21 @@ require_once '../config.php';
                                         <td>" . htmlspecialchars($r['location']) . "</td>
                                         <td><span class='status-pill $status'>" . ucfirst($status) . "</span></td>
                                         <td>" . date('Y-m-d', strtotime($r['created_at'])) . "</td>
+                                        <td>
+                                            <form method='POST' style='display:flex;gap:0.3rem;justify-content:center;'>
+                                                <input type='hidden' name='report_id' value='{$r['id']}'>
+                                                <select name='status'>
+                                                    <option value='pending' " . ($status == 'pending' ? 'selected' : '') . ">Pending</option>
+                                                    <option value='in progress' " . ($status == 'in progress' ? 'selected' : '') . ">In Progress</option>
+                                                    <option value='resolved' " . ($status == 'resolved' ? 'selected' : '') . ">Resolved</option>
+                                                </select>
+                                                <button type='submit'><i class='ri-check-line'></i></button>
+                                            </form>
+                                        </td>
                                     </tr>";
                                 }
                             } else {
-                                echo "<tr><td colspan='4'>No assigned reports found.</td></tr>";
+                                echo "<tr><td colspan='5'>No assigned reports found.</td></tr>";
                             }
                             ?>
                         </tbody>
