@@ -20,19 +20,22 @@ require_once '../config.php';
             --primary: #1B7F79;
             --accent: #42B883;
             --shadow: rgba(0, 0, 0, 0.1);
+            --light-bg: #F5F8F7;
         }
 
-        /* --- Main Layout Adjustment --- */
+        body {
+            background: var(--light-bg);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* --- Layout --- */
         .main-content {
             margin-left: 230px;
-            /* same width as your sidebar */
             padding: 2rem;
-            background: var(--light-bg);
-            min-height: 100vh;
             transition: margin-left 0.3s ease;
+            min-height: 100vh;
         }
 
-        /* Adjust for mobile view */
         @media (max-width: 768px) {
             .main-content {
                 margin-left: 0;
@@ -45,27 +48,55 @@ require_once '../config.php';
             border-radius: 12px;
             box-shadow: 0 4px 12px var(--shadow);
             padding: 2rem;
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
 
         h2 {
             color: var(--primary);
             margin-bottom: 1rem;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        /* --- Table Responsive --- */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px var(--shadow);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 500px;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px var(--shadow);
-            overflow: hidden;
         }
 
         th,
         td {
             padding: 0.9rem;
             text-align: center;
+            font-size: 0.95rem;
         }
 
         thead {
@@ -87,7 +118,7 @@ require_once '../config.php';
             color: #fff;
             font-weight: 600;
             text-transform: capitalize;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .empty {
@@ -106,27 +137,19 @@ require_once '../config.php';
             background: #d9534f;
         }
 
-        .filter-bar {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        .filter-bar input,
-        .filter-bar select {
-            padding: 0.6rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            width: 48%;
-            margin-top: 0.5rem;
-        }
-
         @media(max-width:600px) {
+            h2 {
+                font-size: 1.3rem;
+            }
 
-            .filter-bar input,
-            .filter-bar select {
-                width: 100%;
+            .reports-container {
+                padding: 1.5rem;
+            }
+
+            th,
+            td {
+                font-size: 0.85rem;
+                padding: 0.7rem;
             }
         }
     </style>
@@ -152,39 +175,41 @@ require_once '../config.php';
                     </select>
                 </div>
 
-                <table id="reportTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Status</th>
-                            <th>Location</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $user_id = $_SESSION['user']['id'];
-                        $stmt = $pdo->prepare('SELECT * FROM waste_reports WHERE user_id = ? ORDER BY created_at DESC');
-                        $stmt->execute([$user_id]);
-                        $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        if ($reports):
-                            foreach ($reports as $i => $r):
-                                $status = strtolower($r['status']);
-                        ?>
-                                <tr>
-                                    <td><?php echo ($i + 1); ?></td>
-                                    <td><span class="status-pill <?php echo $status; ?>"><?php echo ucfirst($r['status']); ?></span></td>
-                                    <td><?php echo htmlspecialchars($r['location']); ?></td>
-                                    <td><?php echo date('Y-m-d', strtotime($r['created_at'])); ?></td>
-                                </tr>
-                            <?php endforeach;
-                        else: ?>
+                <div class="table-wrapper">
+                    <table id="reportTable">
+                        <thead>
                             <tr>
-                                <td colspan="4">No reports found.</td>
+                                <th>#</th>
+                                <th>Status</th>
+                                <th>Location</th>
+                                <th>Date</th>
                             </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $user_id = $_SESSION['user']['id'];
+                            $stmt = $pdo->prepare('SELECT * FROM waste_reports WHERE user_id = ? ORDER BY created_at DESC');
+                            $stmt->execute([$user_id]);
+                            $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            if ($reports):
+                                foreach ($reports as $i => $r):
+                                    $status = strtolower($r['status']);
+                            ?>
+                                    <tr>
+                                        <td><?php echo ($i + 1); ?></td>
+                                        <td><span class="status-pill <?php echo $status; ?>"><?php echo ucfirst($r['status']); ?></span></td>
+                                        <td><?php echo htmlspecialchars($r['location']); ?></td>
+                                        <td><?php echo date('Y-m-d', strtotime($r['created_at'])); ?></td>
+                                    </tr>
+                                <?php endforeach;
+                            else: ?>
+                                <tr>
+                                    <td colspan="4">No reports found.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -212,11 +237,5 @@ require_once '../config.php';
         filter.addEventListener('change', filterReports);
     </script>
 </body>
-<?php if (isset($_GET['success'])): ?>
-    <div style="background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:15px;">
-        ✅ Report submitted successfully!
-    </div>
-<?php endif; ?>
-
 
 </html>

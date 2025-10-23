@@ -33,6 +33,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
         .report-container h2 {
             color: var(--primary);
             margin-bottom: 1rem;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
 
         form label {
@@ -50,6 +54,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
             border-radius: 8px;
             margin-bottom: 1rem;
             transition: 0.3s;
+            font-size: 1rem;
         }
 
         form input:focus,
@@ -68,11 +73,65 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
             font-weight: 600;
             cursor: pointer;
             transition: 0.3s;
+            width: 100%;
+            font-size: 1rem;
         }
 
         form button:hover {
             background: #37a471;
             transform: translateY(-2px);
+        }
+
+        /* ✅ Responsive Styling */
+        @media (max-width: 768px) {
+            .report-container {
+                margin: 1rem;
+                padding: 1.2rem;
+                box-shadow: 0 2px 8px var(--shadow);
+            }
+
+            .report-container h2 {
+                font-size: 1.4rem;
+            }
+
+            form input,
+            form select {
+                padding: 0.7rem;
+                font-size: 0.95rem;
+            }
+
+            form button {
+                padding: 0.8rem;
+                font-size: 0.95rem;
+            }
+
+            p {
+                font-size: 0.95rem;
+                line-height: 1.4;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .report-container {
+                margin: 0.8rem;
+                padding: 1rem;
+                border-radius: 10px;
+            }
+
+            .report-container h2 {
+                font-size: 1.2rem;
+            }
+
+            form input,
+            form select {
+                font-size: 0.9rem;
+                padding: 0.6rem;
+            }
+
+            form button {
+                font-size: 0.9rem;
+                padding: 0.7rem;
+            }
         }
     </style>
 </head>
@@ -86,6 +145,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
             <div class="report-container">
                 <h2><i class="ri-map-pin-line"></i> Submit a New Waste Bin Report</h2>
                 <p style="color:#555;">Fill out the form below to report the current status of a waste bin near you.</p>
+
                 <form action="submit_report.php" method="POST" enctype="multipart/form-data">
                     <label for="status">Bin Status:</label>
                     <select name="status" id="status" required>
