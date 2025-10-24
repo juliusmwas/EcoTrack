@@ -54,6 +54,12 @@ $recentReports = $pdo->query("
             --light-bg: #F5F8F7;
         }
 
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background: var(--light-bg);
+        }
+
         .main-content {
             margin-left: 230px;
             padding: 2rem;
@@ -62,18 +68,24 @@ $recentReports = $pdo->query("
         }
 
         .dashboard-container {
-            margin: 2rem auto;
-            padding: 2rem;
+            margin: 1rem auto;
+            padding: 1.5rem;
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 12px var(--shadow);
             max-width: 1200px;
         }
 
+        .dashboard-container h2 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1.5rem;
         }
 
         .stat-card {
@@ -82,6 +94,11 @@ $recentReports = $pdo->query("
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 2px 8px var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
         }
 
         .stat-card i {
@@ -91,7 +108,7 @@ $recentReports = $pdo->query("
         }
 
         .stat-card h3 {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             color: var(--primary);
             margin: 0.3rem 0;
         }
@@ -101,18 +118,26 @@ $recentReports = $pdo->query("
             text-align: center;
         }
 
+        .chart-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
         canvas {
-            max-width: 100%;
-            height: auto;
+            width: 100% !important;
+            height: auto !important;
         }
 
         .recent-reports {
-            margin-top: 2.5rem;
+            margin-top: 2rem;
         }
 
         .recent-reports table {
             width: 100%;
             border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
         }
 
         .recent-reports th,
@@ -146,15 +171,30 @@ $recentReports = $pdo->query("
             background: #28a745;
         }
 
-        @media (max-width: 768px) {
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1.2rem;
+            }
+
             .dashboard-container {
                 padding: 1rem;
-                margin: 1rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-container h2 {
+                font-size: 1.3rem;
+                text-align: center;
             }
 
             .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                max-width: 300px;
             }
 
             .recent-reports table {
@@ -163,17 +203,11 @@ $recentReports = $pdo->query("
 
             th,
             td {
-                padding: 0.6rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
+                padding: 0.5rem;
             }
 
-            h2 {
-                font-size: 1.2rem;
+            .recent-reports {
+                overflow-x: auto;
             }
         }
     </style>
@@ -214,31 +248,39 @@ $recentReports = $pdo->query("
 
                 <div class="chart-section">
                     <h3><i class="ri-bar-chart-2-line"></i> Report Status Overview</h3>
-                    <canvas id="statusChart"></canvas>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
                 </div>
 
                 <div class="recent-reports">
                     <h3><i class="ri-time-line"></i> Recent Reports</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Location</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($recentReports as $r): ?>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td>#<?= $r['id'] ?></td>
-                                    <td><?= htmlspecialchars($r['location']) ?></td>
-                                    <td><span class="status-badge status-<?= $r['status'] ?>"><?= ucfirst($r['status']) ?></span></td>
-                                    <td><?= date("M d, Y H:i", strtotime($r['created_at'])) ?></td>
+                                    <th>ID</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($recentReports as $r): ?>
+                                    <tr>
+                                        <td>#<?= $r['id'] ?></td>
+                                        <td><?= htmlspecialchars($r['location']) ?></td>
+                                        <td>
+                                            <span class="status-badge status-<?= $r['status'] ?>">
+                                                <?= ucfirst($r['status']) ?>
+                                            </span>
+                                        </td>
+                                        <td><?= date("M d, Y H:i", strtotime($r['created_at'])) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>
@@ -260,9 +302,14 @@ $recentReports = $pdo->query("
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 10
+                        }
                     }
                 }
             }
