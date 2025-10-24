@@ -11,6 +11,12 @@ require_once "../config.php";
 $query = "SELECT id, fullname AS name, email, role, created_at FROM users ORDER BY created_at DESC";
 $stmt = $pdo->query($query);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch unassigned waste reports (status = 'pending' or collector_id IS NULL)
+$reportsQuery = "SELECT id, location, status FROM waste_reports WHERE collector_id IS NULL OR status='pending'";
+$reportsStmt = $pdo->query($reportsQuery);
+$reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -116,10 +122,47 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: #2fa572;
         }
 
-        .assign-select {
-            padding: 5px;
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 10px var(--shadow);
+        }
+
+        .modal-content h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        select,
+        button {
+            width: 100%;
+            padding: 0.7rem;
             border-radius: 6px;
             border: 1px solid #ccc;
+            margin-bottom: 1rem;
+        }
+
+        .close-btn {
+            background: #e74c3c;
+            color: white;
         }
 
         /* Responsive */
@@ -127,16 +170,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             .main-content {
                 margin-left: 0;
                 padding: 1rem;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-
-            th,
-            td {
-                padding: 0.7rem;
-                font-size: 0.9rem;
             }
         }
 
@@ -216,7 +249,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </td>
                                 <td data-label="Action">
                                     <?php if ($user['role'] == 'collector'): ?>
-                                        <button class="action-btn">Assign Task</button>
+                                        <button class="action-btn assign-btn" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>">Assign Task</button>
                                     <?php else: ?>
                                         <button class="action-btn" style="background: gray;">View</button>
                                     <?php endif; ?>
@@ -228,6 +261,58 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal" id="assignModal">
+        <div class="modal-content">
+            <h3>Assign Task to <span id="collectorName"></span></h3>
+            <form id="assignForm">
+                <input type="hidden" name="collector_id" id="collectorId">
+                <select name="report_id" required>
+                    <option value="">-- Select Report/Bin --</option>
+                    <?php foreach ($reports as $report): ?>
+                        <option value="<?= $report['id'] ?>">#<?= $report['id'] ?> - <?= htmlspecialchars($report['location']) ?> (<?= ucfirst($report['status']) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" class="action-btn">Assign</button>
+                <button type="button" class="close-btn" id="closeModal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('assignModal');
+        const closeBtn = document.getElementById('closeModal');
+        const assignBtns = document.querySelectorAll('.assign-btn');
+        const collectorName = document.getElementById('collectorName');
+        const collectorId = document.getElementById('collectorId');
+        const assignForm = document.getElementById('assignForm');
+
+        assignBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                collectorName.textContent = btn.dataset.name;
+                collectorId.value = btn.dataset.id;
+                modal.style.display = 'flex';
+            });
+        });
+
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+
+        assignForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(assignForm);
+
+            const response = await fetch('assign_task.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.text();
+            alert(result);
+            modal.style.display = 'none';
+            window.location.reload();
+        });
+    </script>
 </body>
 
 </html>
