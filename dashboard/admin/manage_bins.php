@@ -28,6 +28,7 @@ if (isset($_GET['delete'])) {
 // ✅ Fetch all bins
 $bins = $pdo->query("SELECT * FROM bins ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -36,70 +37,97 @@ $bins = $pdo->query("SELECT * FROM bins ORDER BY created_at DESC")->fetchAll(PDO
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Bins - Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-light">
-    <div class="container mt-5">
-        <h2 class="text-center mb-4">🗑️ Manage Waste Bins</h2>
+<body>
+    <?php include '../sidebar.php'; ?>
+    <?php include '../navbar.php'; ?>
 
-        <?php if (!empty($success)): ?>
-            <div class="alert alert-success text-center"><?= htmlspecialchars($success) ?></div>
-        <?php endif; ?>
+    <div class="content">
+        <div class="container-fluid mt-4">
+            <h2 class="text-center mb-4">🗑️ Manage Waste Bins</h2>
 
-        <!-- Add Bin Form -->
-        <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-                <form method="POST" class="row g-3">
-                    <div class="col-md-9 col-sm-8">
-                        <input type="text" name="location" class="form-control" placeholder="Enter bin location" required>
-                    </div>
-                    <div class="col-md-3 col-sm-4 d-grid">
-                        <button type="submit" class="btn btn-primary">➕ Add Bin</button>
-                    </div>
-                </form>
+            <?php if (!empty($success)): ?>
+                <div class="alert alert-success text-center"><?= htmlspecialchars($success) ?></div>
+            <?php endif; ?>
+
+            <!-- Add Bin Form -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <form method="POST" class="row g-3">
+                        <div class="col-md-9 col-sm-8">
+                            <input type="text" name="location" class="form-control" placeholder="Enter bin location" required>
+                        </div>
+                        <div class="col-md-3 col-sm-4 d-grid">
+                            <button type="submit" class="btn btn-primary">➕ Add Bin</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- Bin List -->
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="mb-3">Existing Bins</h5>
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Location</th>
-                                <th>Status</th>
-                                <th>Added On</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($bins as $bin): ?>
+            <!-- Bin List -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3">Existing Bins</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered align-middle">
+                            <thead class="table-dark">
                                 <tr>
-                                    <td><?= $bin['id'] ?></td>
-                                    <td><?= htmlspecialchars($bin['location']) ?></td>
-                                    <td><?= ucfirst($bin['status']) ?></td>
-                                    <td><?= $bin['created_at'] ?></td>
-                                    <td>
-                                        <a href="?delete=<?= $bin['id'] ?>"
-                                            onclick="return confirm('Are you sure you want to delete this bin?')"
-                                            class="btn btn-danger btn-sm">Delete</a>
-                                    </td>
+                                    <th>ID</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Added On</th>
+                                    <th>Action</th>
                                 </tr>
-                            <?php endforeach; ?>
-                            <?php if (empty($bins)): ?>
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted">No bins found.</td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($bins as $bin): ?>
+                                    <tr>
+                                        <td><?= $bin['id'] ?></td>
+                                        <td><?= htmlspecialchars($bin['location']) ?></td>
+                                        <td><?= ucfirst($bin['status'] ?? 'active') ?></td>
+                                        <td><?= $bin['created_at'] ?></td>
+                                        <td>
+                                            <a href="?delete=<?= $bin['id'] ?>"
+                                                onclick="return confirm('Are you sure you want to delete this bin?')"
+                                                class="btn btn-danger btn-sm">Delete</a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                <?php if (empty($bins)): ?>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No bins found.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
