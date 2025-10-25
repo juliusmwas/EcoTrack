@@ -5,7 +5,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
     exit;
 }
 
-require_once "../config.php";
+require_once "../../config.php";
 
 // Get total users by role
 $totalCollectors = $pdo->query("SELECT COUNT(*) FROM users WHERE role='collector'")->fetchColumn();
@@ -44,7 +44,7 @@ $recentReports = $pdo->query("
     <title>Admin Dashboard | EcoTrack</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 
     <style>
         :root {
@@ -214,9 +214,9 @@ $recentReports = $pdo->query("
 </head>
 
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
     <div style="flex:1; display:flex; flex-direction:column;">
-        <?php include 'navbar.php'; ?>
+        <?php include '../navbar.php'; ?>
 
         <div class="main-content">
             <div class="dashboard-container">
