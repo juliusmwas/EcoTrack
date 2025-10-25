@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../../login.php");
     exit;
 }
 
-require_once "../config.php";
+require_once "../../config.php";
 
 // Fetch all users
 $query = "SELECT id, fullname AS name, email, role, created_at FROM users ORDER BY created_at DESC";
@@ -26,7 +26,7 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users | EcoTrack Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
 
     <style>
         :root {
@@ -213,9 +213,9 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
     <div style="flex:1; display:flex; flex-direction:column;">
-        <?php include 'navbar.php'; ?>
+        <?php include '../navbar.php'; ?>
 
         <div class="main-content">
             <div class="container">

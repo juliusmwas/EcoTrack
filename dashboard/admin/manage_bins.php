@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../../login.php");
     exit;
 }
 
-require_once '../config.php';
+require_once '../../config.php';
 
 // ✅ Add bin
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['location'])) {
