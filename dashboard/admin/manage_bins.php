@@ -39,32 +39,114 @@ $bins = $pdo->query("SELECT * FROM bins ORDER BY created_at DESC")->fetchAll(PDO
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
     <style>
-        body {
-            background-color: #f8f9fa;
+        :root {
+            --sidebar-width: 230px;
+            --primary: #1B7F79;
+            --light-bg: #F5F8F7;
+            --shadow: rgba(0, 0, 0, 0.1);
         }
 
+        body {
+            background: var(--light-bg);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
 
-        .content {
-            margin-left: 250px;
-            padding: 20px;
+        /* Layout structure */
+        .main-wrapper {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 100px 25px 40px 25px;
+            /* top padding leaves space for fixed navbar */
             transition: all 0.3s ease;
         }
 
-        @media (max-width: 768px) {
-            .content {
+        /* Navbar */
+        .navbar-fixed {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 6px var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
                 margin-left: 0;
-                padding: 15px;
+                padding: 90px 15px 30px 15px;
             }
+
+            .navbar-fixed {
+                left: 0;
+            }
+        }
+
+        /* Card and Table Styling */
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 3px 10px var(--shadow);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #13665f;
         }
     </style>
 </head>
 
 <body>
-    <?php include '../sidebar.php'; ?>
-    <?php include '../navbar.php'; ?>
+    <div class="main-wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <?php include '../sidebar.php'; ?>
+        </div>
 
-    <div class="content">
-        <div class="container-fluid mt-4">
+        <!-- Navbar -->
+        <div class="navbar-fixed">
+            <?php include '../navbar.php'; ?>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
             <h2 class="text-center mb-4">🗑️ Manage Waste Bins</h2>
 
             <?php if (!empty($success)): ?>
@@ -72,7 +154,7 @@ $bins = $pdo->query("SELECT * FROM bins ORDER BY created_at DESC")->fetchAll(PDO
             <?php endif; ?>
 
             <!-- Add Bin Form -->
-            <div class="card mb-4 shadow-sm">
+            <div class="card mb-4">
                 <div class="card-body">
                     <form method="POST" class="row g-3">
                         <div class="col-md-9 col-sm-8">
@@ -86,12 +168,12 @@ $bins = $pdo->query("SELECT * FROM bins ORDER BY created_at DESC")->fetchAll(PDO
             </div>
 
             <!-- Bin List -->
-            <div class="card shadow-sm">
+            <div class="card">
                 <div class="card-body">
                     <h5 class="mb-3">Existing Bins</h5>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered align-middle">
-                            <thead class="table-dark">
+                            <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Location</th>
@@ -124,7 +206,7 @@ $bins = $pdo->query("SELECT * FROM bins ORDER BY created_at DESC")->fetchAll(PDO
                     </div>
                 </div>
             </div>
-        </div>
+        </div> <!-- End main content -->
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
