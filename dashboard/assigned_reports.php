@@ -4,18 +4,28 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'collector') {
     header("Location: ../login.php");
     exit;
 }
-require_once '../config.php';
 
-// Handle status update form
+require_once '../config.php';
+require_once './log_activity.php'; // ✅ Include activity logger
+
+// ✅ Handle status update form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['status'])) {
     $report_id = $_POST['report_id'];
     $status = $_POST['status'];
+
+    // Update report status
     $stmt = $pdo->prepare("UPDATE waste_reports SET status = ? WHERE id = ?");
     $stmt->execute([$status, $report_id]);
+
+    // Log collector action
+    $collector_id = $_SESSION['user']['id'];
+    logActivity($collector_id, "Updated report #{$report_id} status to '{$status}'");
+
     header("Location: assigned_reports.php?updated=1");
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 

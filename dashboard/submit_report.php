@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once '../config.php'; // adjust path if config.php is in a different folder
+require_once '../config.php';
+require_once './log_activity.php';
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
     header("Location: ../login.php");
@@ -28,14 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Insert the report into DB
+    // ✅ Insert report
     $stmt = $pdo->prepare("
         INSERT INTO waste_reports (user_id, location, status, image, created_at)
         VALUES (?, ?, ?, ?, NOW())
     ");
     $stmt->execute([$user_id, $location, $status, $imagePath]);
 
-    // Redirect with success message
+    // ✅ Log the action
+    logActivity($user_id, "Submitted a new waste report at location: {$location}");
+
+    // ✅ Redirect with success message
     header("Location: my_reports.php?success=1");
     exit;
 } else {
