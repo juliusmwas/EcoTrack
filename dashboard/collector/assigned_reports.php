@@ -6,7 +6,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'collector') {
 }
 
 require_once '../../config.php';
-require_once '.././log_activity.php'; //  Include activity logger
+
 
 // Handle status update form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['status'])) {
