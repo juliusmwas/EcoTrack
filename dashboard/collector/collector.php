@@ -4,7 +4,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'collector') {
     header("Location: ../login.php");
     exit;
 }
-require_once '../config.php';
+require_once '../../config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +13,7 @@ require_once '../config.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collector Dashboard | EcoTrack</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
         :root {
@@ -191,9 +191,9 @@ require_once '../config.php';
 </head>
 
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
     <div style="flex:1; display:flex; flex-direction:column;">
-        <?php include 'navbar.php'; ?>
+        <?php include '../navbar.php'; ?>
 
         <div class="main-content">
             <h2>Collector Dashboard</h2>

@@ -5,10 +5,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'collector') {
     exit;
 }
 
-require_once '../config.php';
-require_once './log_activity.php'; // ✅ Include activity logger
+require_once '../../config.php';
+require_once '.././log_activity.php'; //  Include activity logger
 
-// ✅ Handle status update form
+// Handle status update form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['status'])) {
     $report_id = $_POST['report_id'];
     $status = $_POST['status'];
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Assigned Reports | EcoTrack</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
         :root {
@@ -174,9 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
 </head>
 
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
     <div style="flex:1; display:flex; flex-direction:column;">
-        <?php include 'navbar.php'; ?>
+        <?php include '../navbar.php'; ?>
 
         <div class="main-content">
             <h2><i class="ri-list-check-2"></i> My Assigned Reports</h2>
