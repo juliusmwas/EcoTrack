@@ -4,6 +4,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
     header("Location: ../login.php");
     exit;
 }
+require_once '../../config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +16,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
     <style>
         :root {
             --primary: #1B7F79;
@@ -172,9 +173,9 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
 </head>
 
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
     <div style="flex:1; display:flex; flex-direction:column;">
-        <?php include 'navbar.php'; ?>
+        <?php include '../navbar.php'; ?>
 
         <div class="main-content">
             <h2>Waste Bin Map — Chuka Region</h2>
@@ -218,7 +219,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
                 </thead>
                 <tbody>
                     <?php
-                    require_once '../config.php';
+                    require_once '../../config.php';
                     $user_id = $_SESSION['user']['id'];
                     $stmt = $pdo->prepare('SELECT * FROM waste_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 10');
                     $stmt->execute([$user_id]);

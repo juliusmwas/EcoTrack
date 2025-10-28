@@ -13,7 +13,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Report | EcoTrack</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
     <style>
         :root {
             --primary: #1B7F79;
@@ -137,9 +137,9 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
 </head>
 
 <body>
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
     <div style="flex:1; display:flex; flex-direction:column;">
-        <?php include 'navbar.php'; ?>
+        <?php include '../navbar.php'; ?>
 
         <div class="main-content">
             <div class="report-container">
