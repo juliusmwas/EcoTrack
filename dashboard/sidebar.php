@@ -26,7 +26,6 @@
       <a href="collector.php" class="' . ($current_page == 'collector.php' ? 'active' : '') . '">Dashboard</a>
       <a href="assigned_reports.php" class="' . ($current_page == 'assigned_reports.php' ? 'active' : '') . '">My Assigned Reports</a>
       <a href="map_view.php" class="' . ($current_page == 'map_view.php' ? 'active' : '') . '">Map View</a>
-      <a href="bins.php" class="' . ($current_page == 'bins.php' ? 'active' : '') . '">View Bins</a>
       ';
   } else {
     echo '

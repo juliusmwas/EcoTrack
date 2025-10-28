@@ -1,13 +1,13 @@
 <?php
 session_start();
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
-    header("Location: ../../login.php");
+    header("Location: ../login.php");
     exit;
 }
 
-require_once '../../config.php';
+require_once "../../config.php";
 
-// ✅ Add bin
+// ✅ Add Bin
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['location'])) {
     $location = trim($_POST['location']);
     if ($location !== '') {
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['location'])) {
     }
 }
 
-// ✅ Delete bin
+// ✅ Delete Bin
 if (isset($_GET['delete'])) {
     $bin_id = (int)$_GET['delete'];
     $stmt = $pdo->prepare("DELETE FROM bins WHERE id = ?");
@@ -26,190 +26,263 @@ if (isset($_GET['delete'])) {
 }
 
 // ✅ Fetch all bins
-$bins = $pdo->query("SELECT * FROM bins ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+$query = "SELECT * FROM bins ORDER BY created_at DESC";
+$stmt = $pdo->query($query);
+$bins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Bins - Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Manage Bins | EcoTrack Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <link rel="stylesheet" href="../style.css">
+
     <style>
         :root {
-            --sidebar-width: 230px;
             --primary: #1B7F79;
-            --light-bg: #F5F8F7;
+            --accent: #42B883;
             --shadow: rgba(0, 0, 0, 0.1);
+            --light-bg: #F5F8F7;
         }
 
         body {
+            font-family: "Poppins", sans-serif;
             background: var(--light-bg);
-            font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            overflow-x: hidden;
-        }
-
-        /* Layout structure */
-        .main-wrapper {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: row;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            flex-shrink: 0;
         }
 
         .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 100px 25px 40px 25px;
-            /* top padding leaves space for fixed navbar */
-            transition: all 0.3s ease;
+            margin-left: 230px;
+            padding: 2rem;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
         }
 
-        /* Navbar */
-        .navbar-fixed {
-            position: fixed;
-            top: 0;
-            left: var(--sidebar-width);
-            right: 0;
-            height: 60px;
-            background: white;
-            box-shadow: 0 2px 6px var(--shadow);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
-        }
-
-        @media (max-width: 992px) {
-            .main-content {
-                margin-left: 0;
-                padding: 90px 15px 30px 15px;
-            }
-
-            .navbar-fixed {
-                left: 0;
-            }
-        }
-
-        /* Card and Table Styling */
-        .card {
+        .container {
+            background: #fff;
             border-radius: 12px;
-            box-shadow: 0 3px 10px var(--shadow);
+            box-shadow: 0 4px 12px var(--shadow);
+            padding: 2rem;
+            max-width: 1200px;
+            margin: auto;
         }
 
         h2 {
             color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         table {
+            width: 100%;
+            border-collapse: collapse;
             border-radius: 10px;
             overflow: hidden;
         }
 
-        thead {
+        th,
+        td {
+            padding: 0.9rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
             background: var(--primary);
             color: white;
+            font-weight: 500;
         }
 
-        .btn-primary {
-            background: var(--primary);
+        tr:hover {
+            background-color: #f2f9f8;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+            text-transform: capitalize;
+        }
+
+        .status-active {
+            background: #28a745;
+        }
+
+        .status-inactive {
+            background: gray;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
             border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
         }
 
-        .btn-primary:hover {
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .add-form {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .add-form input {
+            flex: 1;
+            padding: 0.6rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+        }
+
+        .btn-add:hover {
             background: #13665f;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* 📱 Mobile responsiveness */
+        @media (max-width: 992px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            th,
+            td {
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            thead tr {
+                display: none;
+            }
+
+            tr {
+                background: #fff;
+                margin-bottom: 0.8rem;
+                border-radius: 10px;
+                box-shadow: 0 2px 6px var(--shadow);
+                padding: 0.8rem;
+            }
+
+            td {
+                border: none;
+                display: flex;
+                justify-content: space-between;
+                padding: 0.5rem 0;
+            }
+
+            td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                color: var(--primary);
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="main-wrapper">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <?php include '../sidebar.php'; ?>
-        </div>
+    <?php include '../sidebar.php'; ?>
+    <div style="flex:1; display:flex; flex-direction:column;">
+        <?php include '../navbar.php'; ?>
 
-        <!-- Navbar -->
-        <div class="navbar-fixed">
-            <?php include '../navbar.php'; ?>
-        </div>
-
-        <!-- Main Content -->
         <div class="main-content">
-            <h2 class="text-center mb-4">🗑️ Manage Waste Bins</h2>
+            <div class="container">
+                <h2><i class="ri-delete-bin-2-line"></i> Manage Waste Bins</h2>
+                <p>Add, view, and delete waste collection bins within your system.</p>
 
-            <?php if (!empty($success)): ?>
-                <div class="alert alert-success text-center"><?= htmlspecialchars($success) ?></div>
-            <?php endif; ?>
+                <?php if (!empty($success)): ?>
+                    <div class="alert-success"><?= htmlspecialchars($success) ?></div>
+                <?php endif; ?>
 
-            <!-- Add Bin Form -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form method="POST" class="row g-3">
-                        <div class="col-md-9 col-sm-8">
-                            <input type="text" name="location" class="form-control" placeholder="Enter bin location" required>
-                        </div>
-                        <div class="col-md-3 col-sm-4 d-grid">
-                            <button type="submit" class="btn btn-primary">➕ Add Bin</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                <!-- Add Bin Form -->
+                <form method="POST" class="add-form">
+                    <input type="text" name="location" placeholder="Enter new bin location..." required>
+                    <button type="submit" class="btn-add"><i class="ri-add-circle-line"></i> Add Bin</button>
+                </form>
 
-            <!-- Bin List -->
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="mb-3">Existing Bins</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered align-middle">
-                            <thead>
+                <!-- Bin Table -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($bins): ?>
+                            <?php foreach ($bins as $bin): ?>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Location</th>
-                                    <th>Status</th>
-                                    <th>Added On</th>
-                                    <th>Action</th>
+                                    <td data-label="ID">#<?= htmlspecialchars($bin['id']) ?></td>
+                                    <td data-label="Location"><?= htmlspecialchars($bin['location']) ?></td>
+                                    <td data-label="Status">
+                                        <span class="status-badge status-<?= strtolower($bin['status'] ?? 'active') ?>">
+                                            <?= ucfirst($bin['status'] ?? 'Active') ?>
+                                        </span>
+                                    </td>
+                                    <td data-label="Created At"><?= date("M d, Y H:i", strtotime($bin['created_at'])) ?></td>
+                                    <td data-label="Action">
+                                        <a href="?delete=<?= $bin['id'] ?>"
+                                            onclick="return confirm('Are you sure you want to delete this bin?')">
+                                            <button class="btn-delete"><i class="ri-delete-bin-line"></i> Delete</button>
+                                        </a>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($bins as $bin): ?>
-                                    <tr>
-                                        <td><?= $bin['id'] ?></td>
-                                        <td><?= htmlspecialchars($bin['location']) ?></td>
-                                        <td><?= ucfirst($bin['status'] ?? 'active') ?></td>
-                                        <td><?= $bin['created_at'] ?></td>
-                                        <td>
-                                            <a href="?delete=<?= $bin['id'] ?>"
-                                                onclick="return confirm('Are you sure you want to delete this bin?')"
-                                                class="btn btn-danger btn-sm">Delete</a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                                <?php if (empty($bins)): ?>
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted">No bins found.</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" style="text-align:center;">No bins found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
-        </div> <!-- End main content -->
+        </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
