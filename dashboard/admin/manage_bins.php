@@ -7,15 +7,18 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
 
 require_once "../../config.php";
 
-// ✅ Add Bin
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['location'])) {
     $location = trim($_POST['location']);
+    $lat = $_POST['latitude'];
+    $lng = $_POST['longitude'];
+
     if ($location !== '') {
-        $stmt = $pdo->prepare("INSERT INTO bins (location) VALUES (?)");
-        $stmt->execute([$location]);
+        $stmt = $pdo->prepare("INSERT INTO bins (location, latitude, longitude) VALUES (?, ?, ?)");
+        $stmt->execute([$location, $lat, $lng]);
         $success = "✅ Bin added successfully!";
     }
 }
+
 
 // ✅ Delete Bin
 if (isset($_GET['delete'])) {
@@ -238,9 +241,37 @@ $bins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <!-- Add Bin Form -->
                 <form method="POST" class="add-form">
-                    <input type="text" name="location" placeholder="Enter new bin location..." required>
+                    <input type="text" name="location" placeholder="Enter bin location name..." required>
+                    <input type="text" name="latitude" id="latitude" placeholder="Latitude" required>
+                    <input type="text" name="longitude" id="longitude" placeholder="Longitude" required>
                     <button type="submit" class="btn-add"><i class="ri-add-circle-line"></i> Add Bin</button>
                 </form>
+
+                <!-- Small map for selecting bin location -->
+                <div id="selectMap" style="height:300px; border-radius:10px; margin-top:15px;"></div>
+
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                <script>
+                    const selectMap = L.map('selectMap').setView([-0.3320, 37.6448], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(selectMap);
+
+                    let marker;
+                    selectMap.on('click', e => {
+                        const {
+                            lat,
+                            lng
+                        } = e.latlng;
+                        document.getElementById('latitude').value = lat.toFixed(6);
+                        document.getElementById('longitude').value = lng.toFixed(6);
+
+                        if (marker) selectMap.removeLayer(marker);
+                        marker = L.marker([lat, lng]).addTo(selectMap)
+                            .bindPopup(`Selected: ${lat.toFixed(5)}, ${lng.toFixed(5)}`).openPopup();
+                    });
+                </script>
+
 
                 <!-- Bin Table -->
                 <table>

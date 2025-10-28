@@ -10,19 +10,15 @@ require_once "../../config.php";
 // Fetch all waste reports 
 $query = "
     SELECT wr.id, wr.location, wr.status, wr.image, wr.created_at,
-           u.fullname AS reporter_name, 
-           c.fullname AS collector_name
+           u.fullname AS reporter_name, c.fullname AS collector_name
     FROM waste_reports wr
-    LEFT JOIN users u ON wr.reported_by = u.id
+    LEFT JOIN users u ON wr.user_id = u.id
     LEFT JOIN users c ON wr.collector_id = c.id
     ORDER BY wr.created_at DESC
 ";
 
-
 $stmt = $pdo->query($query);
 $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
