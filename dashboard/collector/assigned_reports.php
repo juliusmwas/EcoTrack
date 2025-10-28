@@ -6,20 +6,20 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'collector') {
 }
 
 require_once '../../config.php';
+require_once 'logactivity.php';
 
-
-// Handle status update form
+// ✅ Handle status update form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['status'])) {
     $report_id = $_POST['report_id'];
     $status = $_POST['status'];
 
-    // Update report status
-    $stmt = $pdo->prepare("UPDATE waste_reports SET status = ? WHERE id = ?");
+    // Update assignment status for that report
+    $stmt = $pdo->prepare("UPDATE waste_reports SET assignment_status = ? WHERE id = ?");
     $stmt->execute([$status, $report_id]);
 
     // Log collector action
     $collector_id = $_SESSION['user']['id'];
-    logActivity($collector_id, "Updated report #{$report_id} status to '{$status}'");
+    logActivity($collector_id, "Updated report #{$report_id} assignment status to '{$status}'");
 
     header("Location: assigned_reports.php?updated=1");
     exit;
@@ -122,7 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
             background: #f0ad4e;
         }
 
-        .in-progress {
+        .in-progress,
+        .in\ progress {
             background: #5bc0de;
         }
 
@@ -183,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
 
             <?php if (isset($_GET['updated'])): ?>
                 <div style="background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:15px;">
-                    ✅ Report status updated successfully.
+                    ✅ Report assignment status updated successfully.
                 </div>
             <?php endif; ?>
 
@@ -194,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
                             <tr>
                                 <th>#</th>
                                 <th>Location</th>
-                                <th>Status</th>
+                                <th>Assignment Status</th>
                                 <th>Reported On</th>
                                 <th>Action</th>
                             </tr>
@@ -202,17 +203,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
                         <tbody>
                             <?php
                             $collector_id = $_SESSION['user']['id'];
-                            $stmt = $pdo->prepare("SELECT * FROM waste_reports WHERE assigned_to=? ORDER BY created_at DESC");
+
+                            // ✅ Show all reports assigned to this collector (regardless of status)
+                            $stmt = $pdo->prepare("
+                                SELECT * 
+                                FROM waste_reports 
+                                WHERE collector_id = ?
+                                ORDER BY created_at DESC
+                            ");
                             $stmt->execute([$collector_id]);
                             $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                             if ($reports) {
                                 foreach ($reports as $i => $r) {
-                                    $status = strtolower($r['status']);
+                                    $status = strtolower($r['assignment_status']);
+                                    $statusClass = str_replace(' ', '-', $status);
+
                                     echo "<tr>
                                         <td>" . ($i + 1) . "</td>
                                         <td>" . htmlspecialchars($r['location']) . "</td>
-                                        <td><span class='status-pill $status'>" . ucfirst($status) . "</span></td>
+                                        <td><span class='status-pill {$statusClass}'>" . ucfirst($status) . "</span></td>
                                         <td>" . date('Y-m-d', strtotime($r['created_at'])) . "</td>
                                         <td>
                                             <form method='POST' style='display:flex;gap:0.3rem;justify-content:center;'>

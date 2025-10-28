@@ -16,20 +16,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Check if report exists and is unassigned
-        $check = $pdo->prepare("SELECT id FROM waste_reports WHERE id = ? AND (collector_id IS NULL OR status = 'pending')");
+        $check = $pdo->prepare("SELECT id FROM waste_reports WHERE id = ? AND (collector_id IS NULL OR assignment_status = 'pending')");
         $check->execute([$report_id]);
 
         if ($check->rowCount() === 0) {
             die("⚠️ This report is already assigned or invalid.");
         }
 
-        //  Assign collector and update status
+        // ✅ Assign collector and update assignment status
         $stmt = $pdo->prepare("
             UPDATE waste_reports 
             SET collector_id = ?, assignment_status = 'assigned'
             WHERE id = ?
         ");
-
+        $stmt->execute([$collector_id, $report_id]);
 
         echo "✅ Task successfully assigned!";
     } catch (PDOException $e) {
