@@ -7,11 +7,19 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'collector') {
 
 require_once "../../config.php";
 
-// Fetch bins (waste reports) from the database
-$query = "SELECT id, location, status, created_at FROM waste_reports";
+// Fetch bins from the database (make sure empty strings are not excluded)
+$query = "SELECT id, location, latitude, longitude, status, created_at FROM bins";
+
 $stmt = $pdo->query($query);
 $bins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Debug 
+if (empty($bins)) {
+    echo "<h3 style='color:red;text-align:center;'>No bins found with coordinates.</h3>";
+    exit;
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -194,13 +202,9 @@ $bins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         };
 
         bins.forEach(bin => {
-            if (!bin.location) return;
-            const coords = bin.location.split(',');
-            if (coords.length !== 2) return;
-            const lat = parseFloat(coords[0]);
-            const lng = parseFloat(coords[1]);
-            if (isNaN(lat) || isNaN(lng)) return;
-
+            if (!bin.latitude || !bin.longitude) return;
+            const lat = parseFloat(bin.latitude);
+            const lng = parseFloat(bin.longitude);
             const color = colors[bin.status] || "gray";
 
             const marker = L.circleMarker([lat, lng], {
@@ -209,8 +213,10 @@ $bins = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 fillOpacity: 0.9
             }).addTo(map);
 
+            marker.bindPopup(`<b>Bin #${bin.id}</b><br>${bin.location}<br>Status: ${bin.status}`);
             marker.on('click', () => openModal(bin));
         });
+
 
         // Legend
         const legend = L.control({

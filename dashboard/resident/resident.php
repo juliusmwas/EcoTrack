@@ -255,7 +255,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
         }).addTo(map);
 
         // Fetch bin data from database
-        fetch('get_bins.php')
+        fetch('../collector/get_bins.php')
             .then(response => response.json())
             .then(bins => {
                 const colors = {
@@ -265,27 +265,21 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
                     "overflowing": "red"
                 };
 
-                bins.forEach((bin) => {
-                    const marker = L.circleMarker([bin.lat, bin.lng], {
-                        color: colors[bin.status],
+                bins.forEach(bin => {
+                    if (!bin.latitude || !bin.longitude) return;
+                    const lat = parseFloat(bin.latitude);
+                    const lng = parseFloat(bin.longitude);
+                    const color = colors[bin.status] || "gray";
+
+                    const marker = L.circleMarker([lat, lng], {
+                        color,
                         radius: 9,
                         fillOpacity: 0.9
                     }).addTo(map);
 
-                    const popup = `
-                <strong>${bin.name}</strong><br>
-                <span class="status-pill ${bin.status}">${bin.status}</span><br>
-                <label>Change Status:</label>
-                <select id="status-${bin.id}">
-                <option value="empty">Empty</option>
-                <option value="half-full">Half Full</option>
-                <option value="full">Full</option>
-                <option value="overflowing">Overflowing</option>
-                </select>
-                <button onclick="updateBin(${bin.id})">Save</button>
-            `;
-                    marker.bindPopup(popup);
+                    marker.bindPopup(`<b>${bin.location}</b><br>Status: ${bin.status}`);
                 });
+
             })
             .catch(err => console.error('Error loading bins:', err));
 
