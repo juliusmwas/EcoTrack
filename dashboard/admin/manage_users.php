@@ -13,7 +13,8 @@ $stmt = $pdo->query($query);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch unassigned waste reports (status = 'pending' or collector_id IS NULL)
-$reportsQuery = "SELECT id, location, status FROM waste_reports WHERE collector_id IS NULL OR status='pending'";
+$reportsQuery = "SELECT id, location, status FROM waste_reports WHERE collector_id IS NULL OR assignment_status='pending'";
+
 $reportsStmt = $pdo->query($reportsQuery);
 $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
 

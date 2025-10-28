@@ -4,7 +4,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
     die("Unauthorized access.");
 }
 
-require_once "../config.php";
+require_once "../../config.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $collector_id = $_POST['collector_id'] ?? null;
@@ -24,8 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         //  Assign collector and update status
-        $stmt = $pdo->prepare("UPDATE waste_reports SET collector_id = ?, status = 'assigned' WHERE id = ?");
-        $stmt->execute([$collector_id, $report_id]);
+        $stmt = $pdo->prepare("
+            UPDATE waste_reports 
+            SET collector_id = ?, assignment_status = 'assigned'
+            WHERE id = ?
+        ");
+
 
         echo "✅ Task successfully assigned!";
     } catch (PDOException $e) {
