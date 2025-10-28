@@ -153,7 +153,6 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'resident') {
                         <option value="empty">Empty</option>
                         <option value="half-full">Half Full</option>
                         <option value="full">Full</option>
-                        <option value="overflowing">Overflowing</option>
                     </select>
 
                     <label for="location">Location:</label>
