@@ -24,13 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Redirect by role
         switch ($user["role"]) {
             case "admin":
-                header("Location: dashboard/admin.php");
+                header("Location: dashboard/admin/admin.php");
                 break;
             case "collector":
-                header("Location: dashboard/collector.php");
+                header("Location: dashboard/collector/collector.php");
                 break;
             default:
-                header("Location: dashboard/resident.php");
+                header("Location: dashboard/resident/resident.php");
                 break;
         }
         exit;

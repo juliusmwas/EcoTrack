@@ -246,13 +246,6 @@ $recentReports = $pdo->query("
                     </div>
                 </div>
 
-                <div class="chart-section">
-                    <h3><i class="ri-bar-chart-2-line"></i> Report Status Overview</h3>
-                    <div class="chart-container">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-
                 <div class="recent-reports">
                     <h3><i class="ri-time-line"></i> Recent Reports</h3>
                     <div class="table-wrapper">
@@ -287,34 +280,7 @@ $recentReports = $pdo->query("
         </div>
     </div>
 
-    <script>
-        const ctx = document.getElementById('statusChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Pending', 'In-Progress', 'Resolved'],
-                datasets: [{
-                    label: 'Report Status',
-                    data: <?= json_encode($data) ?>,
-                    backgroundColor: ['gray', '#17a2b8', '#28a745'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 15,
-                            padding: 10
-                        }
-                    }
-                }
-            }
-        });
-    </script>
+
 </body>
 
 </html>
