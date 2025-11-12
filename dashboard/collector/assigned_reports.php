@@ -13,11 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
     $report_id = $_POST['report_id'];
     $status = $_POST['status'];
 
-    // Update assignment status for that report
     $stmt = $pdo->prepare("UPDATE waste_reports SET assignment_status = ? WHERE id = ?");
     $stmt->execute([$status, $report_id]);
 
-    // Log collector action
     $collector_id = $_SESSION['user']['id'];
     logActivity($collector_id, "Updated report #{$report_id} assignment status to '{$status}'");
 
@@ -25,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
     exit;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -39,20 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
         :root {
             --primary: #1B7F79;
             --accent: #42B883;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --light-bg: #F5F8F7;
+            --warning: #f0ad4e;
+            --info: #5bc0de;
+            --success: #5cb85c;
+            --shadow: rgba(0, 0, 0, 0.15);
+            --bg: #f5f7f8;
         }
 
         body {
-            background: var(--light-bg);
+            background: var(--bg);
             font-family: 'Segoe UI', sans-serif;
+            margin: 0;
         }
 
         .main-content {
             margin-left: 230px;
             padding: 2rem;
             min-height: 100vh;
-            transition: margin-left 0.3s ease;
         }
 
         @media (max-width: 768px) {
@@ -64,71 +64,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
 
         h2 {
             color: var(--primary);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .reports-container {
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .report-card {
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px var(--shadow);
-            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px var(--shadow);
+            padding: 1.2rem 1.4rem;
+            transition: 0.3s ease;
+            border-left: 6px solid var(--primary);
         }
 
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px var(--shadow);
-            -webkit-overflow-scrolling: touch;
+        .report-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px var(--shadow);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px;
-            background: #fff;
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        th,
-        td {
-            padding: 0.9rem;
-            text-align: center;
-            white-space: nowrap;
+        .report-header h3 {
+            font-size: 1rem;
+            margin: 0;
+            color: #333;
         }
 
-        thead {
-            background: var(--primary);
-            color: #fff;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-
-        tbody tr:hover {
-            background: #f0f7f5;
-        }
-
-        .status-pill {
-            padding: 0.4rem 0.8rem;
+        .status-badge {
+            padding: 0.35rem 0.8rem;
             border-radius: 20px;
+            font-size: 0.8rem;
             color: #fff;
-            font-weight: 600;
             text-transform: capitalize;
-            font-size: 0.85rem;
+            font-weight: 600;
         }
 
         .pending {
-            background: #f0ad4e;
+            background: var(--warning);
         }
 
         .in-progress,
         .in\ progress {
-            background: #5bc0de;
+            background: var(--info);
         }
 
         .resolved {
-            background: #5cb85c;
+            background: var(--success);
+        }
+
+        .report-body {
+            margin-top: 0.9rem;
+            color: #555;
+        }
+
+        .report-body p {
+            margin: 0.4rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .report-footer {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         select {
@@ -142,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
             background: var(--accent);
             color: #fff;
             border: none;
-            padding: 0.4rem 0.8rem;
+            padding: 0.45rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
@@ -150,26 +162,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
         }
 
         button:hover {
-            background: #37a471;
+            background: #38a876;
         }
 
-        @media (max-width: 600px) {
+        .notification {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 8px var(--shadow);
+        }
 
-            th,
-            td {
-                font-size: 0.85rem;
-                padding: 0.7rem;
-            }
-
-            select,
-            button {
-                font-size: 0.8rem;
-                padding: 0.3rem 0.6rem;
-            }
-
-            .reports-container {
-                padding: 1rem;
-            }
+        .empty {
+            text-align: center;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            color: #888;
+            box-shadow: 0 4px 10px var(--shadow);
         }
     </style>
 </head>
@@ -180,70 +191,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['report_id'], $_POST['
         <?php include '../navbar.php'; ?>
 
         <div class="main-content">
-            <h2><i class="ri-list-check-2"></i> My Assigned Reports</h2>
+            <h2><i class="ri-file-list-line"></i> My Assigned Reports</h2>
 
             <?php if (isset($_GET['updated'])): ?>
-                <div style="background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:15px;">
+                <div class="notification">
                     ✅ Report assignment status updated successfully.
                 </div>
             <?php endif; ?>
 
-            <div class="reports-container">
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Location</th>
-                                <th>Assignment Status</th>
-                                <th>Reported On</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $collector_id = $_SESSION['user']['id'];
+            <div class="cards-grid">
+                <?php
+                $collector_id = $_SESSION['user']['id'];
 
-                            // ✅ Show all reports assigned to this collector (regardless of status)
-                            $stmt = $pdo->prepare("
-                                SELECT * 
-                                FROM waste_reports 
-                                WHERE collector_id = ?
-                                ORDER BY created_at DESC
-                            ");
-                            $stmt->execute([$collector_id]);
-                            $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt = $pdo->prepare("
+                SELECT * 
+                FROM waste_reports 
+                WHERE collector_id = ?
+                ORDER BY created_at DESC
+            ");
+                $stmt->execute([$collector_id]);
+                $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                            if ($reports) {
-                                foreach ($reports as $i => $r) {
-                                    $status = strtolower($r['assignment_status']);
-                                    $statusClass = str_replace(' ', '-', $status);
-
-                                    echo "<tr>
-                                        <td>" . ($i + 1) . "</td>
-                                        <td>" . htmlspecialchars($r['location']) . "</td>
-                                        <td><span class='status-pill {$statusClass}'>" . ucfirst($status) . "</span></td>
-                                        <td>" . date('Y-m-d', strtotime($r['created_at'])) . "</td>
-                                        <td>
-                                            <form method='POST' style='display:flex;gap:0.3rem;justify-content:center;'>
-                                                <input type='hidden' name='report_id' value='{$r['id']}'>
-                                                <select name='status'>
-                                                    <option value='pending' " . ($status == 'pending' ? 'selected' : '') . ">Pending</option>
-                                                    <option value='in progress' " . ($status == 'in progress' ? 'selected' : '') . ">In Progress</option>
-                                                    <option value='resolved' " . ($status == 'resolved' ? 'selected' : '') . ">Resolved</option>
-                                                </select>
-                                                <button type='submit'><i class='ri-check-line'></i></button>
-                                            </form>
-                                        </td>
-                                    </tr>";
-                                }
-                            } else {
-                                echo "<tr><td colspan='5'>No assigned reports found.</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
+                if ($reports) {
+                    foreach ($reports as $r) {
+                        $status = strtolower($r['assignment_status']);
+                        $statusClass = str_replace(' ', '-', $status);
+                        $date = date('M d, Y', strtotime($r['created_at']));
+                        echo "
+                    <div class='report-card' style='border-left-color:" .
+                            ($status == 'pending' ? '#f0ad4e' : ($status == 'in progress' ? '#5bc0de' : '#5cb85c')) . ";'>
+                        <div class='report-header'>
+                            <h3><i class='ri-map-pin-line'></i> " . htmlspecialchars($r['location']) . "</h3>
+                            <span class='status-badge {$statusClass}'>" . ucfirst($status) . "</span>
+                        </div>
+                        <div class='report-body'>
+                            <p><i class='ri-calendar-line'></i> Reported on: <b>{$date}</b></p>
+                            <p><i class='ri-information-line'></i> Status: <b>" . ucfirst($status) . "</b></p>
+                        </div>
+                        <div class='report-footer'>
+                            <form method='POST' style='display:flex;gap:0.5rem;align-items:center;'>
+                                <input type='hidden' name='report_id' value='{$r['id']}'>
+                                <select name='status'>
+                                    <option value='pending' " . ($status == 'pending' ? 'selected' : '') . ">Pending</option>
+                                    <option value='in progress' " . ($status == 'in progress' ? 'selected' : '') . ">In Progress</option>
+                                    <option value='resolved' " . ($status == 'resolved' ? 'selected' : '') . ">Resolved</option>
+                                </select>
+                                <button type='submit'><i class='ri-check-line'></i> Update</button>
+                            </form>
+                        </div>
+                    </div>";
+                    }
+                } else {
+                    echo "<div class='empty'><i class='ri-folder-info-line'></i> No assigned reports found.</div>";
+                }
+                ?>
             </div>
         </div>
     </div>
