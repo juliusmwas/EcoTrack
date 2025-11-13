@@ -6,7 +6,7 @@ $timeout_duration = 1800; // 30 minutes
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) > $timeout_duration) {
     session_unset();
     session_destroy();
-    header("Location: ../../login.php"); // redirect outside dashboard
+    header("Location: ../../login.php");
     exit;
 }
 $_SESSION['LAST_ACTIVITY'] = time();
@@ -27,7 +27,31 @@ function safe($value)
 
 // --- GET USER DATA ---
 $user_name = $_SESSION['user']['name'] ?? 'Collector';
+$collector_id = $_SESSION['user']['id'] ?? 0;
 
+// --- STATS ---
+$stmt_total = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE collector_id = ?");
+$stmt_total->execute([$collector_id]);
+$total_reports = (int) $stmt_total->fetchColumn();
+
+$stmt_pending = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE collector_id = ? AND assignment_status = 'pending'");
+$stmt_pending->execute([$collector_id]);
+$pending_count = (int) $stmt_pending->fetchColumn();
+
+$stmt_in_progress = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE collector_id = ? AND assignment_status = 'in progress'");
+$stmt_in_progress->execute([$collector_id]);
+$in_progress_count = (int) $stmt_in_progress->fetchColumn();
+
+$stmt_resolved = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE collector_id = ? AND assignment_status = 'Resolved'");
+$stmt_resolved->execute([$collector_id]);
+$resolved_count = (int) $stmt_resolved->fetchColumn();
+
+// --- CALCULATE PROGRESS ---
+if ($total_reports > 0) {
+    $progress = round(($resolved_count / $total_reports) * 100, 1);
+} else {
+    $progress = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -237,12 +261,6 @@ $user_name = $_SESSION['user']['name'] ?? 'Collector';
             color: #555;
             margin-bottom: .5rem;
         }
-
-        @media(max-width:600px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 
@@ -254,30 +272,6 @@ $user_name = $_SESSION['user']['name'] ?? 'Collector';
         <div class="main-content">
             <h2><i class="ri-dashboard-line"></i> Collector Dashboard</h2>
             <p class="welcome">Welcome back, <?php echo safe($user_name); ?> 👋. Here’s your latest overview and quick actions.</p>
-
-            <?php
-            // --- STATS ---
-            $collector_id = $_SESSION['user']['id'];
-
-            // Use correct column in your table
-            $total = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE assigned_to=?");
-            $total->execute([$collector_id]);
-            $total_reports = $total->fetchColumn();
-
-            $pending = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE assigned_to=? AND assignment_status='pending'");
-            $pending->execute([$collector_id]);
-            $pending_count = $pending->fetchColumn();
-
-            $in_progress = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE assigned_to=? AND assignment_status='in progress'");
-            $in_progress->execute([$collector_id]);
-            $in_progress_count = $in_progress->fetchColumn();
-
-            $resolved = $pdo->prepare("SELECT COUNT(*) FROM waste_reports WHERE assigned_to=? AND assignment_status='resolved'");
-            $resolved->execute([$collector_id]);
-            $resolved_count = $resolved->fetchColumn();
-
-            $progress = $total_reports > 0 ? round(($resolved_count / $total_reports) * 100) : 0;
-            ?>
 
             <!-- Summary Cards -->
             <div class="stats-grid">
@@ -339,8 +333,6 @@ $user_name = $_SESSION['user']['name'] ?? 'Collector';
                     </div>
                 </div>
 
-
-
                 <div class="action-card" onclick="window.location.href='profile.php'">
                     <i class="ri-user-settings-line"></i>
                     <div class="action-text">
@@ -365,7 +357,6 @@ $user_name = $_SESSION['user']['name'] ?? 'Collector';
                 $stmt = $pdo->prepare("SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 5");
                 $stmt->execute();
                 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 
                 if ($logs) {
                     foreach ($logs as $log) {
