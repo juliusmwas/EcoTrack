@@ -8,16 +8,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
 require_once "../../config.php";
 
 // Fetch all users
-$query = "SELECT id, fullname AS name, email, role, created_at FROM users ORDER BY created_at DESC";
-$stmt = $pdo->query($query);
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$users = $pdo->query("SELECT id, fullname AS name, email, role, created_at FROM users ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch unassigned waste reports (status = 'pending' or collector_id IS NULL)
-$reportsQuery = "SELECT id, location, status FROM waste_reports WHERE collector_id IS NULL OR assignment_status='pending'";
-
-$reportsStmt = $pdo->query($reportsQuery);
-$reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
-
+$reports = $pdo->query("SELECT id, location, assignment_status FROM waste_reports WHERE collector_id IS NULL OR assignment_status='pending'")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,67 +27,86 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
         :root {
             --primary: #1B7F79;
             --accent: #42B883;
-            --shadow: rgba(0, 0, 0, 0.1);
-            --light-bg: #F5F8F7;
+            --shadow: rgba(0, 0, 0, 0.15);
+            --bg: #f5f7f8;
         }
 
         body {
-            font-family: "Poppins", sans-serif;
             margin: 0;
-            background: var(--light-bg);
+            font-family: "Segoe UI", sans-serif;
+            background: var(--bg);
         }
 
         .main-content {
             margin-left: 230px;
             padding: 2rem;
             min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .container {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px var(--shadow);
-            padding: 2rem;
-            max-width: 1200px;
-            margin: auto;
         }
 
         h2 {
             color: var(--primary);
-            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
         }
 
-        .users-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            border-radius: 10px;
-            overflow: hidden;
+        .search-bar {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
-        th,
-        td {
-            padding: 0.9rem;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
+        .search-bar input,
+        .search-bar select {
+            padding: 0.6rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 150px;
         }
 
-        th {
-            background: var(--primary);
-            color: white;
-            font-weight: 500;
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.2rem;
         }
 
-        tr:hover {
-            background-color: #f2f9f8;
+        .user-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px var(--shadow);
+            padding: 1rem;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .user-info h4 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .user-info p {
+            margin: 0.3rem 0;
+            color: #555;
+            font-size: 0.9rem;
         }
 
         .role-badge {
             padding: 4px 8px;
             border-radius: 6px;
             font-size: 0.85rem;
-            color: white;
+            color: #fff;
+            display: inline-block;
+            text-transform: capitalize;
         }
 
         .role-admin {
@@ -109,13 +122,14 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .action-btn {
+            margin-top: 0.8rem;
             background: var(--accent);
             border: none;
-            padding: 6px 10px;
+            padding: 0.5rem;
             border-radius: 6px;
             color: white;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             transition: 0.2s;
         }
 
@@ -123,7 +137,6 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
             background: #2fa572;
         }
 
-        /* Modal styling */
         .modal {
             display: none;
             position: fixed;
@@ -166,48 +179,18 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
             color: white;
         }
 
-        /* Responsive */
-        @media (max-width: 992px) {
+        @media(max-width:768px) {
             .main-content {
                 margin-left: 0;
                 padding: 1rem;
             }
-        }
 
-        @media (max-width: 600px) {
-
-            .users-table,
-            thead,
-            tbody,
-            th,
-            td,
-            tr {
-                display: block;
+            .users-grid {
+                grid-template-columns: 1fr;
             }
 
-            thead tr {
-                display: none;
-            }
-
-            tr {
-                background: #fff;
-                margin-bottom: 0.8rem;
-                border-radius: 10px;
-                box-shadow: 0 2px 6px var(--shadow);
-                padding: 0.8rem;
-            }
-
-            td {
-                border: none;
-                display: flex;
-                justify-content: space-between;
-                padding: 0.5rem 0;
-            }
-
-            td::before {
-                content: attr(data-label);
-                font-weight: bold;
-                color: var(--primary);
+            .search-bar {
+                flex-direction: column;
             }
         }
     </style>
@@ -219,46 +202,39 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
         <?php include '../navbar.php'; ?>
 
         <div class="main-content">
-            <div class="container">
-                <h2><i class="ri-user-settings-line"></i> Manage Users</h2>
-                <p>View and manage all users in the EcoTrack system.</p>
+            <h2><i class="ri-user-settings-line"></i> Manage Users</h2>
+            <p>View and manage all users in the EcoTrack system.</p>
 
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Registered</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($users as $user): ?>
-                            <tr>
-                                <td data-label="ID">#<?= $user['id'] ?></td>
-                                <td data-label="Name"><?= htmlspecialchars($user['name']) ?></td>
-                                <td data-label="Email"><?= htmlspecialchars($user['email']) ?></td>
-                                <td data-label="Role">
-                                    <span class="role-badge role-<?= $user['role'] ?>">
-                                        <?= ucfirst($user['role']) ?>
-                                    </span>
-                                </td>
-                                <td data-label="Registered">
-                                    <?= date("M d, Y", strtotime($user['created_at'])) ?>
-                                </td>
-                                <td data-label="Action">
-                                    <?php if ($user['role'] == 'collector'): ?>
-                                        <button class="action-btn assign-btn" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>">Assign Task</button>
-                                    <?php else: ?>
-                                        <button class="action-btn" style="background: gray;">View</button>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <!-- Search / Filter -->
+            <div class="search-bar">
+                <input type="text" id="searchName" placeholder="Search by Name">
+                <input type="text" id="searchEmail" placeholder="Search by Email">
+                <select id="searchRole">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="collector">Collector</option>
+                    <option value="resident">Resident</option>
+                </select>
+            </div>
+
+            <div class="users-grid" id="usersGrid">
+                <?php foreach ($users as $user): ?>
+                    <div class="user-card" data-name="<?= strtolower($user['name']) ?>" data-email="<?= strtolower($user['email']) ?>" data-role="<?= strtolower($user['role']) ?>">
+                        <div class="user-info">
+                            <h4><?= htmlspecialchars($user['name']) ?></h4>
+                            <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
+                            <p><strong>Role:</strong> <span class="role-badge role-<?= $user['role'] ?>"><?= ucfirst($user['role']) ?></span></p>
+                            <p><strong>Registered:</strong> <?= date("M d, Y", strtotime($user['created_at'])) ?></p>
+                        </div>
+                        <div>
+                            <?php if ($user['role'] == 'collector'): ?>
+                                <button class="action-btn assign-btn" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>">Assign Task</button>
+                            <?php else: ?>
+                                <button class="action-btn" style="background: gray;">View</button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -272,7 +248,7 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
                 <select name="report_id" required>
                     <option value="">-- Select Report/Bin --</option>
                     <?php foreach ($reports as $report): ?>
-                        <option value="<?= $report['id'] ?>">#<?= $report['id'] ?> - <?= htmlspecialchars($report['location']) ?> (<?= ucfirst($report['status']) ?>)</option>
+                        <option value="<?= $report['id'] ?>">#<?= $report['id'] ?> - <?= htmlspecialchars($report['location']) ?> (<?= ucfirst($report['assignment_status']) ?>)</option>
                     <?php endforeach; ?>
                 </select>
                 <button type="submit" class="action-btn">Assign</button>
@@ -282,6 +258,7 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script>
+        // Modal handling
         const modal = document.getElementById('assignModal');
         const closeBtn = document.getElementById('closeModal');
         const assignBtns = document.querySelectorAll('.assign-btn');
@@ -296,23 +273,43 @@ $reports = $reportsStmt->fetchAll(PDO::FETCH_ASSOC);
                 modal.style.display = 'flex';
             });
         });
-
         closeBtn.addEventListener('click', () => modal.style.display = 'none');
-
         assignForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(assignForm);
-
             const response = await fetch('assign_task.php', {
                 method: 'POST',
                 body: formData
             });
-
             const result = await response.text();
             alert(result);
             modal.style.display = 'none';
             window.location.reload();
         });
+
+        // Inline search/filter
+        const searchName = document.getElementById('searchName');
+        const searchEmail = document.getElementById('searchEmail');
+        const searchRole = document.getElementById('searchRole');
+        const usersGrid = document.getElementById('usersGrid');
+        const userCards = usersGrid.querySelectorAll('.user-card');
+
+        function filterUsers() {
+            const nameVal = searchName.value.toLowerCase();
+            const emailVal = searchEmail.value.toLowerCase();
+            const roleVal = searchRole.value;
+
+            userCards.forEach(card => {
+                const matchName = card.dataset.name.includes(nameVal);
+                const matchEmail = card.dataset.email.includes(emailVal);
+                const matchRole = roleVal === '' || card.dataset.role === roleVal;
+                card.style.display = (matchName && matchEmail && matchRole) ? 'flex' : 'none';
+            });
+        }
+
+        searchName.addEventListener('input', filterUsers);
+        searchEmail.addEventListener('input', filterUsers);
+        searchRole.addEventListener('change', filterUsers);
     </script>
 </body>
 
