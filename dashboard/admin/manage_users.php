@@ -8,7 +8,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
 require_once "../../config.php";
 
 // Fetch all users
-$users = $pdo->query("SELECT id, fullname AS name, email, role, created_at FROM users ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+$users = $pdo->query("SELECT id, fullname AS name, email, role, status, created_at FROM users ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch unassigned waste reports (status = 'pending' or collector_id IS NULL)
 $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_reports WHERE collector_id IS NULL OR assignment_status='pending'")->fetchAll(PDO::FETCH_ASSOC);
@@ -22,13 +22,18 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
     <title>Manage Users | EcoTrack Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
     <link rel="stylesheet" href="../style.css">
-
     <style>
         :root {
             --primary: #1B7F79;
             --accent: #42B883;
-            --shadow: rgba(0, 0, 0, 0.15);
+            --shadow: rgba(0, 0, 0, 0.12);
             --bg: #f5f7f8;
+            --card-admin: #e0e0e0;
+            --card-collector: #d9f0ef;
+            --card-resident: #e8f5e9;
+            --btn-view: #6c757d;
+            --btn-block: #f6a623;
+            --btn-delete: #eb5e55;
         }
 
         body {
@@ -71,18 +76,18 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
         .users-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.2rem;
+            gap: 1.5rem;
         }
 
         .user-card {
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 4px 10px var(--shadow);
+            box-shadow: 0 4px 12px var(--shadow);
             padding: 1rem;
-            transition: transform 0.2s;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: transform 0.2s;
         }
 
         .user-card:hover {
@@ -90,14 +95,14 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
         }
 
         .user-info h4 {
-            margin: 0;
+            margin: 0 0 0.3rem 0;
             color: var(--primary);
         }
 
         .user-info p {
-            margin: 0.3rem 0;
-            color: #555;
+            margin: 0.2rem 0;
             font-size: 0.9rem;
+            color: #555;
         }
 
         .role-badge {
@@ -110,73 +115,79 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
         }
 
         .role-admin {
-            background: #6c63ff;
+            background: #7a7a7a;
         }
 
         .role-collector {
-            background: #17a2b8;
+            background: var(--accent);
         }
 
         .role-resident {
             background: #28a745;
         }
 
-        .action-btn {
-            margin-top: 0.8rem;
-            background: var(--accent);
-            border: none;
-            padding: 0.5rem;
+        .status-badge {
+            padding: 3px 7px;
             border-radius: 6px;
-            color: white;
+            font-size: 0.8rem;
+            color: #fff;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: var(--primary);
+        }
+
+        .status-blocked {
+            background: #e07b7b;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem 0;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
             cursor: pointer;
             font-size: 0.85rem;
             transition: 0.2s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-view {
+            background: var(--btn-view);
+        }
+
+        .btn-block {
+            background: var(--btn-block);
+        }
+
+        .btn-delete {
+            background: var(--btn-delete);
         }
 
         .action-btn:hover {
-            background: #2fa572;
+            opacity: 0.9;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+        .card-admin {
+            background: var(--card-admin);
         }
 
-        .modal-content {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 10px var(--shadow);
+        .card-collector {
+            background: var(--card-collector);
         }
 
-        .modal-content h3 {
-            color: var(--primary);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        select,
-        button {
-            width: 100%;
-            padding: 0.7rem;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            margin-bottom: 1rem;
-        }
-
-        .close-btn {
-            background: #e74c3c;
-            color: white;
+        .card-resident {
+            background: var(--card-resident);
         }
 
         @media(max-width:768px) {
@@ -203,7 +214,7 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
 
         <div class="main-content">
             <h2><i class="ri-user-settings-line"></i> Manage Users</h2>
-            <p>View and manage all users in the EcoTrack system.</p>
+            <p>Admins have full control over all users.</p>
 
             <!-- Search / Filter -->
             <div class="search-bar">
@@ -218,19 +229,26 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
             </div>
 
             <div class="users-grid" id="usersGrid">
-                <?php foreach ($users as $user): ?>
-                    <div class="user-card" data-name="<?= strtolower($user['name']) ?>" data-email="<?= strtolower($user['email']) ?>" data-role="<?= strtolower($user['role']) ?>">
+                <?php foreach ($users as $user):
+                    $cardClass = 'card-resident';
+                    if ($user['role'] == 'admin') $cardClass = 'card-admin';
+                    elseif ($user['role'] == 'collector') $cardClass = 'card-collector';
+                ?>
+                    <div class="user-card <?= $cardClass ?>" data-name="<?= strtolower($user['name']) ?>" data-email="<?= strtolower($user['email']) ?>" data-role="<?= strtolower($user['role']) ?>">
                         <div class="user-info">
                             <h4><?= htmlspecialchars($user['name']) ?></h4>
                             <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
                             <p><strong>Role:</strong> <span class="role-badge role-<?= $user['role'] ?>"><?= ucfirst($user['role']) ?></span></p>
+                            <p><strong>Status:</strong> <span class="status-badge status-<?= $user['status'] ?>"><?= ucfirst($user['status']) ?></span></p>
                             <p><strong>Registered:</strong> <?= date("M d, Y", strtotime($user['created_at'])) ?></p>
                         </div>
-                        <div>
-                            <?php if ($user['role'] == 'collector'): ?>
-                                <button class="action-btn assign-btn" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>">Assign Task</button>
-                            <?php else: ?>
-                                <button class="action-btn" style="background: gray;">View</button>
+                        <div class="button-group">
+                            <a href="view_user.php?id=<?= $user['id'] ?>" class="action-btn btn-view">View</a>
+                            <?php if ($user['role'] != 'admin'): ?>
+                                <button class="action-btn btn-block" onclick="toggleStatus(<?= $user['id'] ?>,'<?= $user['status'] ?>')">
+                                    <?= $user['status'] == 'active' ? 'Block' : 'Unblock' ?>
+                                </button>
+                                <button class="action-btn btn-delete" onclick="deleteUser(<?= $user['id'] ?>)">Delete</button>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -239,55 +257,7 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal" id="assignModal">
-        <div class="modal-content">
-            <h3>Assign Task to <span id="collectorName"></span></h3>
-            <form id="assignForm">
-                <input type="hidden" name="collector_id" id="collectorId">
-                <select name="report_id" required>
-                    <option value="">-- Select Report/Bin --</option>
-                    <?php foreach ($reports as $report): ?>
-                        <option value="<?= $report['id'] ?>">#<?= $report['id'] ?> - <?= htmlspecialchars($report['location']) ?> (<?= ucfirst($report['assignment_status']) ?>)</option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit" class="action-btn">Assign</button>
-                <button type="button" class="close-btn" id="closeModal">Cancel</button>
-            </form>
-        </div>
-    </div>
-
     <script>
-        // Modal handling
-        const modal = document.getElementById('assignModal');
-        const closeBtn = document.getElementById('closeModal');
-        const assignBtns = document.querySelectorAll('.assign-btn');
-        const collectorName = document.getElementById('collectorName');
-        const collectorId = document.getElementById('collectorId');
-        const assignForm = document.getElementById('assignForm');
-
-        assignBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                collectorName.textContent = btn.dataset.name;
-                collectorId.value = btn.dataset.id;
-                modal.style.display = 'flex';
-            });
-        });
-        closeBtn.addEventListener('click', () => modal.style.display = 'none');
-        assignForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(assignForm);
-            const response = await fetch('assign_task.php', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.text();
-            alert(result);
-            modal.style.display = 'none';
-            window.location.reload();
-        });
-
-        // Inline search/filter
         const searchName = document.getElementById('searchName');
         const searchEmail = document.getElementById('searchEmail');
         const searchRole = document.getElementById('searchRole');
@@ -310,6 +280,39 @@ $reports = $pdo->query("SELECT id, location, assignment_status FROM waste_report
         searchName.addEventListener('input', filterUsers);
         searchEmail.addEventListener('input', filterUsers);
         searchRole.addEventListener('change', filterUsers);
+
+        // Toggle block/unblock
+        async function toggleStatus(userId, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
+            if (confirm(`Are you sure you want to ${newStatus==='blocked'?'block':'unblock'} this user?`)) {
+                const res = await fetch('update_user_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `user_id=${userId}&status=${newStatus}`
+                });
+                const result = await res.text();
+                alert(result);
+                window.location.reload();
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                const res = await fetch('delete_user.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `user_id=${userId}`
+                });
+                const result = await res.text();
+                alert(result);
+                window.location.reload();
+            }
+        }
     </script>
 </body>
 
