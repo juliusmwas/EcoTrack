@@ -4,18 +4,16 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
     header("Location: ../login.php");
     exit;
 }
-
 require_once "../../config.php";
 
-// Fetch all waste reports 
-$query = "
-    SELECT wr.id, wr.location, wr.status, wr.image, wr.created_at,
-           u.fullname AS reporter_name, c.fullname AS collector_name
-    FROM waste_reports wr
-    LEFT JOIN users u ON wr.user_id = u.id
-    LEFT JOIN users c ON wr.collector_id = c.id
-    ORDER BY wr.created_at DESC
-";
+// Fetch all waste reports
+$query = "SELECT wr.id, wr.location, wr.status, wr.image, wr.created_at,
+                 u.fullname AS reporter_name,
+                 c.fullname AS collector_name
+          FROM waste_reports wr
+          LEFT JOIN users u ON wr.user_id = u.id
+          LEFT JOIN users c ON wr.collector_id = c.id
+          ORDER BY wr.created_at DESC";
 
 $stmt = $pdo->query($query);
 $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -39,107 +37,114 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         body {
+            background: var(--light-bg);
             font-family: "Poppins", sans-serif;
             margin: 0;
-            background: var(--light-bg);
         }
 
         .main-content {
             margin-left: 230px;
             padding: 2rem;
             min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .container {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px var(--shadow);
-            padding: 2rem;
-            max-width: 1200px;
-            margin: auto;
+            transition: 0.3s;
         }
 
         h2 {
             color: var(--primary);
-            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-container {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 14px;
+            box-shadow: 0 3px 12px var(--shadow);
+            margin-top: 1.5rem;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            border-radius: 10px;
             overflow: hidden;
         }
 
-        th,
-        td {
-            padding: 0.9rem;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
+        thead {
+            background: var(--primary);
+            color: #fff;
         }
 
         th {
-            background: var(--primary);
-            color: white;
             font-weight: 500;
+            padding: 0.9rem;
+            font-size: 0.9rem;
         }
 
-        tr:hover {
-            background-color: #f2f9f8;
+        td {
+            padding: 0.85rem;
+            border-bottom: 1px solid #e6e6e6;
+            font-size: 0.88rem;
+        }
+
+        tr:hover td {
+            background: #eef8f7;
         }
 
         .status {
-            padding: 4px 8px;
-            border-radius: 6px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
             color: #fff;
-            font-size: 0.85rem;
-            text-transform: capitalize;
         }
 
         .pending {
-            background: gray;
+            background: #6c757d;
         }
 
         .assigned {
-            background: #17a2b8;
+            background: #0ea5e9;
         }
 
         .in-progress {
-            background: #ffc107;
+            background: #f59e0b;
         }
 
         .resolved {
-            background: #28a745;
+            background: #22c55e;
         }
 
-        img.report-img {
-            width: 60px;
-            height: 60px;
+        .report-img {
+            width: 55px;
+            height: 55px;
             border-radius: 8px;
             object-fit: cover;
-            border: 1px solid #ccc;
+            border: 2px solid #e3e3e3;
+            transition: 0.3s;
         }
 
-        /* 📱 Mobile responsiveness */
-        @media (max-width: 992px) {
+        .report-img:hover {
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        small {
+            display: block;
+            color: #555;
+            font-size: 0.75rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 991px) {
             .main-content {
                 margin-left: 0;
                 padding: 1rem;
             }
-
-            .container {
-                padding: 1rem;
-            }
-
-            th,
-            td {
-                padding: 0.7rem;
-                font-size: 0.9rem;
-            }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
 
             table,
             thead,
@@ -150,49 +155,54 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 display: block;
             }
 
-            thead tr {
+            thead {
                 display: none;
             }
 
             tr {
+                margin-bottom: 1rem;
                 background: #fff;
-                margin-bottom: 0.8rem;
-                border-radius: 10px;
+                padding: 1rem;
+                border-radius: 12px;
                 box-shadow: 0 2px 6px var(--shadow);
-                padding: 0.8rem;
             }
 
             td {
                 border: none;
                 display: flex;
                 justify-content: space-between;
-                padding: 0.5rem 0;
+                padding: 0.4rem 0;
             }
 
             td::before {
                 content: attr(data-label);
-                font-weight: bold;
+                font-weight: 600;
                 color: var(--primary);
+                margin-right: 12px;
             }
 
-            img.report-img {
+            .report-img {
                 width: 50px;
                 height: 50px;
             }
         }
     </style>
+
 </head>
 
 <body>
+
     <?php include '../sidebar.php'; ?>
+
     <div style="flex:1; display:flex; flex-direction:column;">
         <?php include '../navbar.php'; ?>
 
         <div class="main-content">
-            <div class="container">
-                <h2><i class="ri-file-list-line"></i> Waste Reports Overview</h2>
-                <p>All waste reports submitted by residents and their current statuses.</p>
 
+            <h2><i class="ri-file-list-line"></i> Waste Reports Overview</h2>
+            <p style="color:#555;">All waste reports submitted and their current statuses.</p>
+
+            <div class="table-container">
                 <table>
                     <thead>
                         <tr>
@@ -210,22 +220,28 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php foreach ($reports as $report): ?>
                                 <tr>
                                     <td data-label="ID">#<?= htmlspecialchars($report['id']) ?></td>
-                                    <td data-label="Reporter"><?= htmlspecialchars($report['reporter_name'] ?? 'N/A') ?></td>
+                                    <td data-label="Reporter">
+                                        <?= htmlspecialchars($report['reporter_name'] ?? 'N/A') ?>
+                                    </td>
                                     <td data-label="Location"><?= htmlspecialchars($report['location']) ?></td>
                                     <td data-label="Status">
                                         <span class="status <?= htmlspecialchars($report['status']) ?>">
                                             <?= htmlspecialchars($report['status']) ?>
                                         </span>
                                     </td>
-                                    <td data-label="Collector"><?= htmlspecialchars($report['collector_name'] ?? 'Unassigned') ?></td>
+                                    <td data-label="Collector">
+                                        <?= htmlspecialchars($report['collector_name'] ?? 'Unassigned') ?>
+                                    </td>
                                     <td data-label="Image">
                                         <?php if ($report['image']): ?>
-                                            <img src="../uploads/<?= htmlspecialchars($report['image']) ?>" alt="Report Image" class="report-img">
+                                            <img src="../uploads/<?= htmlspecialchars($report['image']) ?>" class="report-img" alt="Report Image">
                                         <?php else: ?>
-                                            <em>No image</em>
+                                            <small>No image</small>
                                         <?php endif; ?>
                                     </td>
-                                    <td data-label="Reported On"><?= date("M d, Y H:i", strtotime($report['created_at'])) ?></td>
+                                    <td data-label="Reported On">
+                                        <?= date("M d, Y H:i", strtotime($report['created_at'])) ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -236,8 +252,10 @@ $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </tbody>
                 </table>
             </div>
+
         </div>
     </div>
+
 </body>
 
 </html>
